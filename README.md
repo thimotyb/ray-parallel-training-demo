@@ -59,9 +59,26 @@ This project demonstrates:
 
 ## Prerequisites
 
+### Quick Install (Automated)
+
+Run the automated installation script to install all prerequisites (except Docker):
+
+```bash
+./scripts/install-prerequisites.sh
+```
+
+This script will install:
+- kubectl (Kubernetes CLI)
+- Minikube (Local Kubernetes cluster)
+- Helm (Kubernetes package manager)
+
+**Note**: Docker must be installed manually before running the script.
+
+### Manual Installation
+
 Ensure you have the following installed:
 
-- **Docker**: Container runtime
+- **Docker**: Container runtime (required - must be installed manually)
   - Install: https://docs.docker.com/get-docker/
 
 - **Minikube**: Local Kubernetes cluster
@@ -87,6 +104,9 @@ Ensure you have the following installed:
 ## Quick Start
 
 ```bash
+# 0. Install prerequisites (if not already installed)
+./scripts/install-prerequisites.sh
+
 # 1. Clone and navigate to the project
 cd ray-parallel-training-demo
 

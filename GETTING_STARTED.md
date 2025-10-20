@@ -13,6 +13,16 @@ Follow this checklist to successfully run the Ray parallel training demo.
 
 ### ✓ Required Software
 
+**Option A: Automated Install (Recommended)**
+
+- [ ] Run the prerequisites installation script
+  ```bash
+  ./scripts/install-prerequisites.sh
+  ```
+  This will install kubectl, Minikube, and Helm automatically.
+
+**Option B: Manual Install**
+
 - [ ] Docker installed and running
   ```bash
   docker --version
