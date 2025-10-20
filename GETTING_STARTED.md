@@ -113,14 +113,40 @@ Follow this checklist to successfully run the Ray parallel training demo.
 
 ### Step 4: Access Ray Dashboard (Optional)
 
-- [ ] Port forward to dashboard
+The Ray dashboard provides real-time monitoring of your cluster and training jobs.
+
+**Quick Access:**
+
+- [ ] Run the dashboard access script
   ```bash
-  kubectl port-forward -n ray-system svc/ray-cluster-head-svc 8265:8265
+  ./scripts/open-dashboard.sh
   ```
 
-- [ ] Open browser to http://localhost:8265
+**Or access manually via NodePort:**
 
-- [ ] Verify you can see the cluster info
+- [ ] Get Minikube IP and access dashboard
+  ```bash
+  minikube ip
+  # Open browser to: http://<minikube-ip>:30265
+  ```
+
+**Or use port forwarding:**
+
+- [ ] Port forward to localhost (in separate terminal)
+  ```bash
+  kubectl port-forward -n ray-system svc/ray-cluster-head-svc 8265:8265
+  # Then open browser to: http://localhost:8265
+  ```
+
+**Dashboard features:**
+- Cluster resource monitoring
+- Job tracking and logs
+- Worker and task visualization
+- No authentication required
+
+For detailed dashboard guide, see: [docs/RAY_DASHBOARD.md](docs/RAY_DASHBOARD.md)
+
+- [ ] Verify you can see the cluster info in the dashboard
 
 **Time estimate:** 1 minute
 

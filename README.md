@@ -177,12 +177,54 @@ ray-training-cluster-worker-...     1/1     Running   0          1m
 
 ### Step 3: Access Ray Dashboard (Optional)
 
+The Ray dashboard provides real-time monitoring of your cluster, jobs, and resources.
+
+**Quick Access (Recommended):**
+
 ```bash
-# Port forward to Ray dashboard
+./scripts/open-dashboard.sh
+```
+
+This script will:
+- Display the dashboard URL
+- Show cluster status
+- Optionally open the dashboard in your browser
+
+**Manual Access Methods:**
+
+**Method 1: NodePort (Direct Access)**
+
+The dashboard is exposed via NodePort on port 30265:
+
+```bash
+# Get Minikube IP
+minikube ip
+
+# Open browser to: http://<minikube-ip>:30265
+# Example: http://192.168.49.2:30265
+```
+
+**Method 2: Port Forwarding (Localhost)**
+
+Access via localhost using port forwarding:
+
+```bash
+# In a separate terminal, run:
 kubectl port-forward -n ray-system svc/ray-cluster-head-svc 8265:8265
 
-# Open browser to http://localhost:8265
+# Then open browser to: http://localhost:8265
 ```
+
+**Dashboard Features:**
+
+The Ray dashboard provides:
+- **Cluster Overview**: Resource usage, nodes, and workers
+- **Jobs**: Monitor running and completed jobs
+- **Actors & Tasks**: Visualize distributed tasks
+- **Logs**: View real-time logs from all nodes
+- **Metrics**: Performance metrics and graphs
+
+**Note:** The Ray dashboard does NOT require authentication by default. It's accessible without login credentials.
 
 ## Running the Benchmark
 
