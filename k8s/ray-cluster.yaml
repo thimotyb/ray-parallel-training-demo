@@ -15,8 +15,8 @@ spec:
       spec:
         containers:
         - name: ray-head
-          image: rayproject/ray:2.9.0-py310
-          imagePullPolicy: IfNotPresent
+          image: ray-training-demo:latest
+          imagePullPolicy: Never
           resources:
             limits:
               cpu: "2"
@@ -55,8 +55,8 @@ spec:
       spec:
         containers:
         - name: ray-worker
-          image: rayproject/ray:2.9.0-py310
-          imagePullPolicy: IfNotPresent
+          image: ray-training-demo:latest
+          imagePullPolicy: Never
           resources:
             limits:
               cpu: "2"

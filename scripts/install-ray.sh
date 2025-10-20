@@ -12,7 +12,34 @@ if ! command -v helm &> /dev/null; then
     exit 1
 fi
 
+# Check if docker is installed
+if ! command -v docker &> /dev/null; then
+    echo "Error: docker is not installed"
+    echo "Please install docker from: https://docs.docker.com/get-docker/"
+    exit 1
+fi
+
+# Build custom Ray image with TensorFlow
+echo ""
+echo "=========================================="
+echo "Step 1: Building Custom Docker Image"
+echo "=========================================="
+echo "Building Ray image with TensorFlow and dependencies..."
+echo "This may take 3-5 minutes on first build..."
+echo ""
+
+cd ../docker
+./build-and-push.sh
+cd ../scripts
+
+echo ""
+echo "Custom image built successfully!"
+echo ""
+
 # Add Ray Helm repository
+echo "=========================================="
+echo "Step 2: Setting up KubeRay"
+echo "=========================================="
 echo "Adding Ray Helm repository..."
 helm repo add kuberay https://ray-project.github.io/kuberay-helm/
 helm repo update
@@ -33,7 +60,11 @@ kubectl wait --for=condition=available --timeout=300s \
   deployment/kuberay-operator -n ray-system
 
 # Deploy Ray cluster
-echo "Deploying Ray cluster..."
+echo ""
+echo "=========================================="
+echo "Step 3: Deploying Ray Cluster"
+echo "=========================================="
+echo "Deploying Ray cluster with custom image..."
 kubectl apply -f ../k8s/ray-cluster.yaml
 
 # Deploy Ray service (NodePort for dashboard access)

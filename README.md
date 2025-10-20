@@ -19,6 +19,7 @@ A comprehensive demonstration of Ray's distributed training capabilities using T
 
 This project demonstrates:
 - Setting up a 2-node Minikube Kubernetes cluster
+- Building a custom Ray Docker image with TensorFlow
 - Deploying Ray cluster using KubeRay operator
 - Training a CNN model on CIFAR-10 dataset
 - Comparing training performance with and without Ray
@@ -161,10 +162,17 @@ minikube-m02   Ready    <none>          1m    v1.28.3
 ```
 
 This script will:
+- **Build custom Docker image** with TensorFlow and dependencies (3-5 minutes first time)
 - Add KubeRay Helm repository
 - Install KubeRay operator
 - Deploy Ray cluster with 1 head node and 2 worker nodes
 - Wait for cluster to be ready
+
+**Note:** The script builds a custom Docker image that includes:
+- TensorFlow 2.15.0
+- Ray with training support
+- NumPy, Pandas, Matplotlib, scikit-learn
+- All dependencies needed for the training benchmark
 
 Verify Ray cluster:
 ```bash

@@ -91,6 +91,15 @@ Follow this checklist to successfully run the Ray parallel training demo.
   ./scripts/install-ray.sh
   ```
 
+  **Note:** This script will:
+  - Build a custom Docker image with TensorFlow (3-5 min on first run)
+  - Install KubeRay operator
+  - Deploy Ray cluster with custom image
+
+- [ ] Wait for Docker image build to complete
+  - First time: ~3-5 minutes (downloads base image + installs TensorFlow)
+  - Subsequent builds: ~1 minute (uses cached layers)
+
 - [ ] Verify KubeRay operator is running
   ```bash
   kubectl get pods -n ray-system | grep operator
@@ -109,7 +118,7 @@ Follow this checklist to successfully run the Ray parallel training demo.
   # Expected: 1 head + 2 workers, all Running
   ```
 
-**Time estimate:** 3-5 minutes
+**Time estimate:** 5-8 minutes (includes Docker build)
 
 ### Step 4: Access Ray Dashboard (Optional)
 
