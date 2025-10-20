@@ -116,11 +116,16 @@ cd ray-parallel-training-demo
 # 3. Install Ray on Kubernetes
 ./scripts/install-ray.sh
 
-# 4. Run the benchmark
+# 4. (Optional) Install monitoring stack for enhanced dashboard
+./scripts/install-monitoring.sh
+
+# 5. Run the benchmark
 ./scripts/run-benchmark.sh
 ```
 
 That's it! The benchmark will run both baseline and Ray distributed training, then display a comparison report.
+
+**Note:** Installing the monitoring stack (Prometheus + Grafana) enables time-series charts and enhanced metrics in the Ray dashboard.
 
 ## Detailed Setup
 
@@ -225,6 +230,30 @@ The Ray dashboard provides:
 - **Metrics**: Performance metrics and graphs
 
 **Note:** The Ray dashboard does NOT require authentication by default. It's accessible without login credentials.
+
+### Step 4: Install Monitoring Stack (Optional but Recommended)
+
+To enable time-series charts and enhanced metrics visualization in the Ray dashboard:
+
+```bash
+./scripts/install-monitoring.sh
+```
+
+This script will install:
+- **Prometheus**: Collects metrics from Ray cluster (exposed on port 9090)
+- **Grafana**: Visualizes metrics with dashboards (accessible at `http://<minikube-ip>:30300`)
+
+**Grafana Access:**
+- URL: `http://<minikube-ip>:30300`
+- Default credentials: `admin` / `admin`
+
+**What this enables:**
+- Time-series charts in Ray dashboard
+- Historical metrics and trends
+- Resource utilization graphs
+- Custom Grafana dashboards
+
+After installation, **refresh the Ray dashboard** to see the time-series charts appear.
 
 ## Running the Benchmark
 

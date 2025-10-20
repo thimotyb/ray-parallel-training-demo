@@ -150,9 +150,47 @@ For detailed dashboard guide, see: [docs/RAY_DASHBOARD.md](docs/RAY_DASHBOARD.md
 
 **Time estimate:** 1 minute
 
+### Step 5: Install Monitoring Stack (Optional but Recommended)
+
+Enable time-series charts and enhanced metrics in the Ray dashboard.
+
+- [ ] Run monitoring installation script
+  ```bash
+  ./scripts/install-monitoring.sh
+  ```
+
+- [ ] Verify Prometheus is running
+  ```bash
+  kubectl get pods -n ray-system | grep prometheus
+  # Expected: 1/1 Running
+  ```
+
+- [ ] Verify Grafana is running
+  ```bash
+  kubectl get pods -n ray-system | grep grafana
+  # Expected: 1/1 Running
+  ```
+
+- [ ] Access Grafana (optional)
+  ```bash
+  minikube ip
+  # Open browser to: http://<minikube-ip>:30300
+  # Credentials: admin / admin
+  ```
+
+- [ ] Refresh Ray dashboard to see time-series charts
+
+**What this enables:**
+- Time-series graphs in Ray dashboard
+- Historical metrics and trends
+- Resource utilization visualizations
+- Custom Grafana dashboards
+
+**Time estimate:** 2-3 minutes
+
 ## Running Benchmark Checklist
 
-### Step 5: Run Full Benchmark
+### Step 6: Run Full Benchmark
 
 - [ ] Execute benchmark script
   ```bash
