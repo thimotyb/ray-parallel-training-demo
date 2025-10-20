@@ -276,23 +276,30 @@ The Ray dashboard uses Prometheus directly for time-series charts. Grafana is av
 
 ### Full Benchmark
 
-Run the complete benchmark comparing baseline vs. Ray training:
+Run the benchmark driver with an optional mode selector:
 
 ```bash
-./scripts/run-benchmark.sh
+./scripts/run-benchmark.sh [baseline|ray|both]
 ```
 
-You can customize the training parameters:
+- `both` *(default)* runs the baseline first, then the Ray distributed job, and generates a comparison report.
+- `baseline` runs only the single-node Keras training and writes `results/baseline_results.json`.
+- `ray` runs only the distributed Ray training and writes `results/ray_results_2workers.json`.
+- `./scripts/run-benchmark.sh --help` prints the available flags and environment variables.
+
+When you run just one mode, the comparison step is skipped because it requires both result files. Re-run with `both` whenever you want the side-by-side summary refreshed.
+
+You can customize the training parameters for any mode:
 
 ```bash
-# Run with 20 epochs
-EPOCHS=20 ./scripts/run-benchmark.sh
+# Run with 20 epochs (baseline only)
+EPOCHS=20 ./scripts/run-benchmark.sh baseline
 
-# Run with custom batch size
-BATCH_SIZE=256 ./scripts/run-benchmark.sh
+# Run the Ray leg with custom batch size
+BATCH_SIZE=256 ./scripts/run-benchmark.sh ray
 
-# Combine parameters
-EPOCHS=15 BATCH_SIZE=256 ./scripts/run-benchmark.sh
+# Full benchmark with tweaked epochs and batch size
+EPOCHS=15 BATCH_SIZE=256 ./scripts/run-benchmark.sh both
 ```
 
 ### Manual Training

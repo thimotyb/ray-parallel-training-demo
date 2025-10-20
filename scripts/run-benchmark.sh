@@ -1,6 +1,34 @@
 #!/bin/bash
 set -e
 
+RUN_TARGET_RAW=${1:-both}
+
+if [[ "$RUN_TARGET_RAW" == "-h" || "$RUN_TARGET_RAW" == "--help" ]]; then
+    cat <<'USAGE'
+Usage: ./scripts/run-benchmark.sh [baseline|ray|both]
+
+Run the MNIST training benchmark:
+  baseline - run the baseline (no Ray) training only
+  ray      - run the Ray distributed training only
+  both     - run both baseline and Ray training (default)
+
+Environment variables:
+  EPOCHS      Number of training epochs (default: 10)
+  BATCH_SIZE  Training batch size (default: 128)
+USAGE
+    exit 0
+fi
+
+RUN_TARGET=$(echo "$RUN_TARGET_RAW" | tr '[:upper:]' '[:lower:]')
+case "$RUN_TARGET" in
+    baseline|ray|both) ;;
+    *)
+        echo "Error: Invalid run target '$RUN_TARGET_RAW'."
+        echo "Valid options are: baseline, ray, both."
+        exit 1
+        ;;
+esac
+
 # Get the directory where this script is located
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
@@ -8,6 +36,8 @@ PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
 echo "=========================================="
 echo "Ray Parallel Training Benchmark"
 echo "=========================================="
+echo "Selected run target: $RUN_TARGET"
+echo ""
 
 # Configuration
 EPOCHS=${EPOCHS:-10}
@@ -29,52 +59,63 @@ echo ""
 # Create results directory in project root
 mkdir -p "$PROJECT_ROOT/results"
 
-# Run baseline training (without Ray)
-echo "=========================================="
-echo "Step 1: Running Baseline Training (No Ray)"
-echo "=========================================="
-echo "Copying training scripts to Ray head pod..."
-kubectl cp "$PROJECT_ROOT/training/baseline_training.py" ray-system/$RAY_HEAD_POD:/home/ray/baseline_training.py
+# Track what we run during this invocation
+baseline_run=false
+ray_run=false
 
-echo "Running baseline training..."
-kubectl exec -it -n ray-system $RAY_HEAD_POD -- python /home/ray/baseline_training.py \
-    --epochs $EPOCHS \
-    --batch-size $BATCH_SIZE
+if [[ "$RUN_TARGET" == "baseline" || "$RUN_TARGET" == "both" ]]; then
+    # Run baseline training (without Ray)
+    echo "=========================================="
+    echo "Step 1: Running Baseline Training (No Ray)"
+    echo "=========================================="
+    echo "Copying training scripts to Ray head pod..."
+    kubectl cp "$PROJECT_ROOT/training/baseline_training.py" ray-system/$RAY_HEAD_POD:/home/ray/baseline_training.py
 
-# Copy baseline results
-echo "Copying baseline results..."
-kubectl cp ray-system/$RAY_HEAD_POD:/home/ray/baseline_results.json "$PROJECT_ROOT/results/baseline_results.json"
+    echo "Running baseline training..."
+    kubectl exec -it -n ray-system $RAY_HEAD_POD -- python /home/ray/baseline_training.py \
+        --epochs $EPOCHS \
+        --batch-size $BATCH_SIZE
 
-echo ""
-echo "Baseline training complete!"
-echo ""
+    # Copy baseline results
+    echo "Copying baseline results..."
+    kubectl cp ray-system/$RAY_HEAD_POD:/home/ray/baseline_results.json "$PROJECT_ROOT/results/baseline_results.json"
 
-# Run Ray distributed training with 2 workers
-echo "=========================================="
-echo "Step 2: Running Ray Distributed Training (2 Workers)"
-echo "=========================================="
-echo "Copying Ray training script to Ray head pod..."
-kubectl cp "$PROJECT_ROOT/training/ray_training.py" ray-system/$RAY_HEAD_POD:/home/ray/ray_training.py
+    echo ""
+    echo "Baseline training complete!"
+    echo ""
+    baseline_run=true
+fi
 
-echo "Running Ray distributed training with 2 workers..."
-kubectl exec -it -n ray-system $RAY_HEAD_POD -- python /home/ray/ray_training.py \
-    --ray-address auto \
-    --num-workers 2 \
-    --epochs $EPOCHS \
-    --batch-size $BATCH_SIZE
+if [[ "$RUN_TARGET" == "ray" || "$RUN_TARGET" == "both" ]]; then
+    # Run Ray distributed training with 2 workers
+    echo "=========================================="
+    echo "Step 2: Running Ray Distributed Training (2 Workers)"
+    echo "=========================================="
+    echo "Copying Ray training script to Ray head pod..."
+    kubectl cp "$PROJECT_ROOT/training/ray_training.py" ray-system/$RAY_HEAD_POD:/home/ray/ray_training.py
 
-# Copy Ray results
-echo "Copying Ray training results..."
-kubectl cp ray-system/$RAY_HEAD_POD:/home/ray/ray_results_2workers.json "$PROJECT_ROOT/results/ray_results_2workers.json"
+    echo "Running Ray distributed training with 2 workers..."
+    kubectl exec -it -n ray-system $RAY_HEAD_POD -- python /home/ray/ray_training.py \
+        --ray-address auto \
+        --num-workers 2 \
+        --epochs $EPOCHS \
+        --batch-size $BATCH_SIZE
 
-echo ""
-echo "Ray distributed training complete!"
-echo ""
+    # Copy Ray results
+    echo "Copying Ray training results..."
+    kubectl cp ray-system/$RAY_HEAD_POD:/home/ray/ray_results_2workers.json "$PROJECT_ROOT/results/ray_results_2workers.json"
 
-# Generate comparison report
-echo "=========================================="
-echo "Generating Comparison Report"
-echo "=========================================="
+    echo ""
+    echo "Ray distributed training complete!"
+    echo ""
+    ray_run=true
+fi
+
+if [[ "$baseline_run" == true && "$ray_run" == true ]]; then
+    # Generate comparison report
+    echo "=========================================="
+    echo "Generating Comparison Report"
+    echo "=========================================="
 
 python3 << EOF
 import json
@@ -136,12 +177,29 @@ with open('$PROJECT_ROOT/results/comparison.json', 'w') as f:
 print("Detailed comparison saved to results/comparison.json\n")
 EOF
 
+    comparison_generated=true
+else
+    echo "=========================================="
+    echo "Skipping Comparison Report"
+    echo "=========================================="
+    echo "Comparison requires both baseline and Ray results from the current run."
+    echo "Run with 'both' to generate the side-by-side report."
+    echo ""
+    comparison_generated=false
+fi
+
 echo "=========================================="
 echo "Benchmark Complete!"
 echo "=========================================="
 echo ""
-echo "Results saved in ./results/ directory:"
-echo "  - baseline_results.json"
-echo "  - ray_results_2workers.json"
-echo "  - comparison.json"
+echo "Outputs generated:"
+if [[ "$baseline_run" == true ]]; then
+    echo "  - results/baseline_results.json"
+fi
+if [[ "$ray_run" == true ]]; then
+    echo "  - results/ray_results_2workers.json"
+fi
+if [[ "${comparison_generated:-false}" == true ]]; then
+    echo "  - results/comparison.json"
+fi
 echo ""

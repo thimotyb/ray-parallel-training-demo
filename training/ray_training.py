@@ -3,13 +3,11 @@ Ray distributed training script using Ray Train with TensorFlow/Keras.
 This script demonstrates parallel training across multiple workers using MNIST.
 """
 
+import os
 import time
 import json
 import argparse
-import numpy as np
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
 
 import ray
 from ray import train
@@ -19,23 +17,23 @@ from ray.train.tensorflow import TensorflowTrainer
 
 def create_model():
     """Create a lightweight CNN model for MNIST classification."""
-    model = keras.Sequential([
+    model = tf.keras.Sequential([
         # Input layer
-        layers.Input(shape=(28, 28, 1)),
+        tf.keras.layers.Input(shape=(28, 28, 1)),
 
         # First convolutional block
-        layers.Conv2D(32, (3, 3), activation='relu'),
-        layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),
+        tf.keras.layers.MaxPooling2D((2, 2)),
 
         # Second convolutional block
-        layers.Conv2D(64, (3, 3), activation='relu'),
-        layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        tf.keras.layers.MaxPooling2D((2, 2)),
 
         # Dense layers
-        layers.Flatten(),
-        layers.Dense(128, activation='relu'),
-        layers.Dropout(0.5),
-        layers.Dense(10, activation='softmax')
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(128, activation='relu'),
+        tf.keras.layers.Dropout(0.5),
+        tf.keras.layers.Dense(10, activation='softmax')
     ])
 
     return model
@@ -43,15 +41,15 @@ def create_model():
 
 def load_and_prepare_data():
     """Load and preprocess MNIST dataset."""
-    (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
+    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 
     # Reshape and normalize
     x_train = x_train.reshape(-1, 28, 28, 1).astype('float32') / 255.0
     x_test = x_test.reshape(-1, 28, 28, 1).astype('float32') / 255.0
 
     # Convert labels to categorical
-    y_train = keras.utils.to_categorical(y_train, 10)
-    y_test = keras.utils.to_categorical(y_test, 10)
+    y_train = tf.keras.utils.to_categorical(y_train, 10)
+    y_test = tf.keras.utils.to_categorical(y_test, 10)
 
     return (x_train, y_train), (x_test, y_test)
 
@@ -78,7 +76,7 @@ def train_func_per_worker(config):
     with strategy.scope():
         model = create_model()
         model.compile(
-            optimizer=keras.optimizers.Adam(learning_rate=0.001),
+            optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
             loss='categorical_crossentropy',
             metrics=['accuracy']
         )
@@ -91,7 +89,7 @@ def train_func_per_worker(config):
         for step, (x_batch, y_batch) in enumerate(train_dataset):
             with tf.GradientTape() as tape:
                 predictions = model(x_batch, training=True)
-                loss = keras.losses.categorical_crossentropy(y_batch, predictions)
+                loss = tf.keras.losses.categorical_crossentropy(y_batch, predictions)
                 loss = tf.reduce_mean(loss)
 
             gradients = tape.gradient(loss, model.trainable_variables)
@@ -142,6 +140,9 @@ def run_ray_training(num_workers=2, epochs=5, batch_size=128, ray_address='auto'
     print(f"Number of workers: {num_workers}")
     print(f"Epochs: {epochs}")
     print(f"Batch size: {batch_size}\n")
+
+    # Disable default Tune loggers that require tensorboardX (not bundled in Ray image)
+    os.environ["TUNE_DISABLE_AUTO_CALLBACK_LOGGERS"] = "1"
 
     # Create trainer
     trainer = TensorflowTrainer(
