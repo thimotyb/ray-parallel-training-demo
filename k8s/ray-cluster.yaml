@@ -1,0 +1,63 @@
+apiVersion: ray.io/v1
+kind: RayCluster
+metadata:
+  name: ray-training-cluster
+  namespace: ray-system
+spec:
+  rayVersion: '2.9.0'
+  enableInTreeAutoscaling: false
+  headGroupSpec:
+    rayStartParams:
+      dashboard-host: '0.0.0.0'
+      block: 'true'
+    template:
+      spec:
+        containers:
+        - name: ray-head
+          image: rayproject/ray:2.9.0-py310
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+            requests:
+              cpu: "1"
+              memory: "2Gi"
+          ports:
+          - containerPort: 6379
+            name: gcs-server
+          - containerPort: 8265
+            name: dashboard
+          - containerPort: 10001
+            name: client
+          volumeMounts:
+          - name: training-code
+            mountPath: /home/ray/training
+        volumes:
+        - name: training-code
+          emptyDir: {}
+  workerGroupSpecs:
+  - replicas: 2
+    minReplicas: 1
+    maxReplicas: 3
+    groupName: worker-group
+    rayStartParams: {}
+    template:
+      spec:
+        containers:
+        - name: ray-worker
+          image: rayproject/ray:2.9.0-py310
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+            requests:
+              cpu: "1"
+              memory: "2Gi"
+          volumeMounts:
+          - name: training-code
+            mountPath: /home/ray/training
+        volumes:
+        - name: training-code
+          emptyDir: {}

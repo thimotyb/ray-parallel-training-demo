@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ray-cluster-head-svc
+  namespace: ray-system
+spec:
+  type: NodePort
+  selector:
+    ray.io/cluster: ray-training-cluster
+    ray.io/node-type: head
+  ports:
+  - name: dashboard
+    port: 8265
+    targetPort: 8265
+    nodePort: 30265
+  - name: client
+    port: 10001
+    targetPort: 10001
+    nodePort: 30001
+  - name: gcs-server
+    port: 6379
+    targetPort: 6379
