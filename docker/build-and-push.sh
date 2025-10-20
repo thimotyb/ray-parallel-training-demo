@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
+
 # Configuration
 IMAGE_NAME="ray-training-demo"
 IMAGE_TAG="latest"
@@ -12,7 +16,7 @@ echo "=========================================="
 
 # Build the image
 echo "Building image: ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
-docker build -t ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} -f Dockerfile ..
+docker build -t ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} -f "$SCRIPT_DIR/Dockerfile" "$PROJECT_ROOT"
 
 # Tag for Minikube's local registry
 echo "Tagging image for Minikube..."

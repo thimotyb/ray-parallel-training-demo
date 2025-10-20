@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
+
 echo "=========================================="
 echo "Installing Ray on Kubernetes"
 echo "=========================================="
@@ -28,9 +32,8 @@ echo "Building Ray image with TensorFlow and dependencies..."
 echo "This may take 3-5 minutes on first build..."
 echo ""
 
-cd ../docker
+cd "$PROJECT_ROOT/docker"
 ./build-and-push.sh
-cd ../scripts
 
 echo ""
 echo "Custom image built successfully!"
@@ -65,11 +68,11 @@ echo "=========================================="
 echo "Step 3: Deploying Ray Cluster"
 echo "=========================================="
 echo "Deploying Ray cluster with custom image..."
-kubectl apply -f ../k8s/ray-cluster.yaml
+kubectl apply -f "$PROJECT_ROOT/k8s/ray-cluster.yaml"
 
 # Deploy Ray service (NodePort for dashboard access)
 echo "Deploying Ray dashboard service..."
-kubectl apply -f ../k8s/ray-service.yaml
+kubectl apply -f "$PROJECT_ROOT/k8s/ray-service.yaml"
 
 # Wait for Ray cluster to be ready
 echo "Waiting for Ray cluster to be ready..."
@@ -97,11 +100,11 @@ echo ""
 
 # Deploy Prometheus
 echo "Deploying Prometheus..."
-kubectl apply -f ../k8s/prometheus-config.yaml
+kubectl apply -f "$PROJECT_ROOT/k8s/prometheus-config.yaml"
 
 # Deploy Grafana
 echo "Deploying Grafana..."
-kubectl apply -f ../k8s/grafana-config.yaml
+kubectl apply -f "$PROJECT_ROOT/k8s/grafana-config.yaml"
 
 # Wait for monitoring stack
 echo "Waiting for monitoring stack to be ready..."

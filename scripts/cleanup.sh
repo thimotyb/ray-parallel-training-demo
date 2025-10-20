@@ -1,13 +1,17 @@
 #!/bin/bash
 set -e
 
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
+
 echo "=========================================="
 echo "Cleaning up Ray and Minikube resources"
 echo "=========================================="
 
 # Delete Ray cluster
 echo "Deleting Ray cluster..."
-kubectl delete -f ../k8s/ray-cluster.yaml --ignore-not-found=true
+kubectl delete -f "$PROJECT_ROOT/k8s/ray-cluster.yaml" --ignore-not-found=true
 
 # Uninstall KubeRay operator
 echo "Uninstalling KubeRay operator..."

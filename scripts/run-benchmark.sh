@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
+
 echo "=========================================="
 echo "Ray Parallel Training Benchmark"
 echo "=========================================="
@@ -22,15 +26,15 @@ echo "  Epochs: $EPOCHS"
 echo "  Batch size: $BATCH_SIZE"
 echo ""
 
-# Create results directory
-mkdir -p results
+# Create results directory in project root
+mkdir -p "$PROJECT_ROOT/results"
 
 # Run baseline training (without Ray)
 echo "=========================================="
 echo "Step 1: Running Baseline Training (No Ray)"
 echo "=========================================="
 echo "Copying training scripts to Ray head pod..."
-kubectl cp training/baseline_training.py ray-system/$RAY_HEAD_POD:/home/ray/baseline_training.py
+kubectl cp "$PROJECT_ROOT/training/baseline_training.py" ray-system/$RAY_HEAD_POD:/home/ray/baseline_training.py
 
 echo "Running baseline training..."
 kubectl exec -it -n ray-system $RAY_HEAD_POD -- python /home/ray/baseline_training.py \
@@ -39,7 +43,7 @@ kubectl exec -it -n ray-system $RAY_HEAD_POD -- python /home/ray/baseline_traini
 
 # Copy baseline results
 echo "Copying baseline results..."
-kubectl cp ray-system/$RAY_HEAD_POD:/home/ray/baseline_results.json results/baseline_results.json
+kubectl cp ray-system/$RAY_HEAD_POD:/home/ray/baseline_results.json "$PROJECT_ROOT/results/baseline_results.json"
 
 echo ""
 echo "Baseline training complete!"
@@ -50,7 +54,7 @@ echo "=========================================="
 echo "Step 2: Running Ray Distributed Training (2 Workers)"
 echo "=========================================="
 echo "Copying Ray training script to Ray head pod..."
-kubectl cp training/ray_training.py ray-system/$RAY_HEAD_POD:/home/ray/ray_training.py
+kubectl cp "$PROJECT_ROOT/training/ray_training.py" ray-system/$RAY_HEAD_POD:/home/ray/ray_training.py
 
 echo "Running Ray distributed training with 2 workers..."
 kubectl exec -it -n ray-system $RAY_HEAD_POD -- python /home/ray/ray_training.py \
@@ -61,7 +65,7 @@ kubectl exec -it -n ray-system $RAY_HEAD_POD -- python /home/ray/ray_training.py
 
 # Copy Ray results
 echo "Copying Ray training results..."
-kubectl cp ray-system/$RAY_HEAD_POD:/home/ray/ray_results_2workers.json results/ray_results_2workers.json
+kubectl cp ray-system/$RAY_HEAD_POD:/home/ray/ray_results_2workers.json "$PROJECT_ROOT/results/ray_results_2workers.json"
 
 echo ""
 echo "Ray distributed training complete!"
@@ -72,15 +76,15 @@ echo "=========================================="
 echo "Generating Comparison Report"
 echo "=========================================="
 
-python3 << 'EOF'
+python3 << EOF
 import json
 import os
 
 # Load results
-with open('results/baseline_results.json', 'r') as f:
+with open('$PROJECT_ROOT/results/baseline_results.json', 'r') as f:
     baseline = json.load(f)
 
-with open('results/ray_results_2workers.json', 'r') as f:
+with open('$PROJECT_ROOT/results/ray_results_2workers.json', 'r') as f:
     ray_results = json.load(f)
 
 # Calculate speedup
@@ -126,7 +130,7 @@ comparison = {
     }
 }
 
-with open('results/comparison.json', 'w') as f:
+with open('$PROJECT_ROOT/results/comparison.json', 'w') as f:
     json.dump(comparison, f, indent=2)
 
 print("Detailed comparison saved to results/comparison.json\n")

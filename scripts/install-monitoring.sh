@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
+
 echo "=========================================="
 echo "Installing Ray Monitoring Stack"
 echo "=========================================="
@@ -27,7 +31,7 @@ fi
 echo "=========================================="
 echo "1. Deploying Prometheus"
 echo "=========================================="
-kubectl apply -f ../k8s/prometheus-config.yaml
+kubectl apply -f "$PROJECT_ROOT/k8s/prometheus-config.yaml"
 
 echo "Waiting for Prometheus to be ready..."
 kubectl wait --for=condition=available --timeout=120s \
@@ -38,7 +42,7 @@ echo ""
 echo "=========================================="
 echo "2. Deploying Grafana"
 echo "=========================================="
-kubectl apply -f ../k8s/grafana-config.yaml
+kubectl apply -f "$PROJECT_ROOT/k8s/grafana-config.yaml"
 
 echo "Waiting for Grafana to be ready..."
 kubectl wait --for=condition=available --timeout=120s \
