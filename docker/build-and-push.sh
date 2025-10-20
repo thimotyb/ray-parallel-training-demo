@@ -14,6 +14,18 @@ echo "=========================================="
 echo "Building Docker image for Ray Training"
 echo "=========================================="
 
+# Check if image already exists in Minikube
+echo "Checking if image already exists in Minikube..."
+if minikube image ls --format table | grep -q "${IMAGE_NAME}:${IMAGE_TAG}"; then
+    echo "Image ${IMAGE_NAME}:${IMAGE_TAG} already exists in Minikube"
+    echo "Skipping build and load (use 'minikube image rm ${IMAGE_NAME}:${IMAGE_TAG}' to force rebuild)"
+    echo ""
+    echo "=========================================="
+    echo "Using existing image: ${IMAGE_NAME}:${IMAGE_TAG}"
+    echo "=========================================="
+    exit 0
+fi
+
 # Build the image
 echo "Building image: ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
 docker build -t ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} -f "$SCRIPT_DIR/Dockerfile" "$PROJECT_ROOT"
