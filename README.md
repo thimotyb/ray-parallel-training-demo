@@ -176,7 +176,16 @@ This script will:
 - Prometheus (metrics collection)
 - Grafana (visualization and dashboards)
 
-**Time estimate:** 7-10 minutes (first time with Docker build)
+**Time estimate:**
+- First installation: 7-10 minutes (includes Docker build)
+- Reinstallation: 3-5 minutes (Docker image cached)
+
+**Docker Image Caching:**
+The script automatically caches the built Docker image in Minikube. On subsequent runs, if the image already exists, the build step is skipped, saving 3-5 minutes. To force a rebuild:
+```bash
+minikube image rm ray-training-demo:latest
+./scripts/install-ray.sh
+```
 
 Verify installation:
 ```bash
@@ -378,6 +387,92 @@ Example `comparison.json`:
 - **Speedup**: Typically 1.5x - 2x with 2 workers on small cluster
 - **Accuracy**: Should be within ±1-2% between baseline and Ray training
 - **Time**: Depends on hardware, but Ray should always be faster
+
+## Development & Testing Cycle
+
+### Fast Iteration for Development
+
+The project is optimized for rapid development and testing iterations with intelligent Docker image caching.
+
+#### First Installation (Full Setup)
+```bash
+./scripts/install-ray.sh
+# Time: 7-10 minutes (includes Docker build)
+```
+
+#### Rapid Reinstallation (Cached Image)
+
+If you need to reinstall the Ray cluster (e.g., testing configuration changes), the Docker image is automatically reused:
+
+```bash
+# Delete cluster
+kubectl delete raycluster -n ray-system ray-training-cluster
+
+# Reinstall (skips Docker build!)
+./scripts/install-ray.sh
+# Time: 3-5 minutes (60% faster!)
+```
+
+**Why faster?** The Docker image (`ray-training-demo:latest`) is cached in Minikube and automatically reused if it already exists.
+
+#### Development Workflow
+
+**Typical iteration cycle:**
+
+```bash
+# 1. Make changes to Ray cluster configuration
+vim k8s/ray-cluster.yaml
+
+# 2. Delete current cluster
+kubectl delete raycluster -n ray-system ray-training-cluster
+
+# 3. Reinstall (fast with cached image)
+./scripts/install-ray.sh
+# ~3-5 minutes
+
+# 4. Test changes
+./scripts/run-benchmark.sh
+```
+
+#### When to Force Image Rebuild
+
+Rebuild the Docker image when you change:
+- Python dependencies (`docker/requirements.txt`)
+- Dockerfile
+- Training scripts that are baked into the image
+
+```bash
+# Force rebuild
+minikube image rm ray-training-demo:latest
+./scripts/install-ray.sh
+# Will rebuild from scratch (~7-10 minutes)
+```
+
+#### Time Comparison
+
+| Scenario | First Time | Subsequent Runs | Time Saved |
+|----------|-----------|-----------------|------------|
+| **Full installation** | 7-10 min | 3-5 min | **4-5 min** |
+| **Docker build only** | 3-5 min | instant | **3-5 min** |
+| **Cluster deploy only** | 3-5 min | 3-5 min | 0 min |
+
+#### Quick Commands Reference
+
+```bash
+# Check if image is cached
+minikube image ls | grep ray-training-demo
+
+# Remove cached image (force rebuild next time)
+minikube image rm ray-training-demo:latest
+
+# Restart Ray cluster (keeps image)
+kubectl delete raycluster -n ray-system ray-training-cluster
+./scripts/install-ray.sh
+
+# Full cleanup and reinstall
+./scripts/cleanup.sh
+./scripts/install-ray.sh
+```
 
 ## Project Structure
 
