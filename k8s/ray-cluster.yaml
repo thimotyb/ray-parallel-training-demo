@@ -34,10 +34,12 @@ spec:
           - containerPort: 8080
             name: metrics
           env:
-          - name: RAY_GRAFANA_HOST
-            value: "http://grafana:3000"
           - name: RAY_PROMETHEUS_HOST
             value: "http://prometheus:9090"
+          - name: RAY_GRAFANA_IFRAME_HOST
+            value: ""
+          - name: RAY_GRAFANA_HOST
+            value: ""
           volumeMounts:
           - name: training-code
             mountPath: /home/ray/training

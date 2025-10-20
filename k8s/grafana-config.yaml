@@ -45,7 +45,11 @@ spec:
         - name: GF_AUTH_ANONYMOUS_ORG_ROLE
           value: "Viewer"
         - name: GF_SERVER_ROOT_URL
-          value: "http://localhost:3000"
+          value: "%(protocol)s://%(domain)s:%(http_port)s/"
+        - name: GF_SECURITY_ALLOW_EMBEDDING
+          value: "true"
+        - name: GF_AUTH_DISABLE_LOGIN_FORM
+          value: "false"
         volumeMounts:
         - name: datasources
           mountPath: /etc/grafana/provisioning/datasources

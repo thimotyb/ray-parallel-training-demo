@@ -256,15 +256,19 @@ The Ray dashboard provides:
 
 **Monitoring Features:**
 
-Since the monitoring stack (Prometheus + Grafana) is automatically installed, the Ray dashboard includes:
-- **Time-series charts**: Historical metrics visualization
+Since the monitoring stack (Prometheus + Grafana) is automatically installed:
+- **Time-series charts**: Powered by Prometheus (accessible internally)
 - **Resource graphs**: CPU, memory, network usage over time
 - **Job metrics**: Task duration, throughput trends
 
-**Access Grafana** (optional):
+**Note about Grafana Integration:**
+The Ray dashboard uses Prometheus directly for time-series charts. Grafana is available separately for creating custom dashboards and advanced visualization.
+
+**Access Grafana** (for custom dashboards):
 - URL: `http://<minikube-ip>:30300`
 - Default credentials: `admin` / `admin`
-- Create custom dashboards and alerts
+- Create custom dashboards and set up alerts
+- View Prometheus datasource metrics
 
 ## Running the Benchmark
 
