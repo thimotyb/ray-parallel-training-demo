@@ -86,18 +86,93 @@ echo ""
 echo "Ray pods:"
 kubectl get pods -n ray-system
 echo ""
-echo "Ray dashboard service:"
-kubectl get svc -n ray-system ray-cluster-head-svc
+
+# Deploy monitoring stack
 echo ""
 echo "=========================================="
-echo "Dashboard Access:"
+echo "Step 4: Installing Monitoring Stack"
+echo "=========================================="
+echo "Installing Prometheus and Grafana for enhanced metrics..."
+echo ""
+
+# Deploy Prometheus
+echo "Deploying Prometheus..."
+kubectl apply -f ../k8s/prometheus-config.yaml
+
+# Deploy Grafana
+echo "Deploying Grafana..."
+kubectl apply -f ../k8s/grafana-config.yaml
+
+# Wait for monitoring stack
+echo "Waiting for monitoring stack to be ready..."
+echo "(This may take 1-2 minutes)"
+sleep 10
+
+# Wait for Prometheus
+kubectl wait --for=condition=available --timeout=120s \
+  deployment/prometheus -n ray-system 2>/dev/null || echo "Prometheus deployment pending..."
+
+# Wait for Grafana
+kubectl wait --for=condition=available --timeout=120s \
+  deployment/grafana -n ray-system 2>/dev/null || echo "Grafana deployment pending..."
+
+# Give pods a moment to fully start
+sleep 5
+
+echo ""
+echo "Monitoring stack deployed!"
+echo ""
+
+# Show all services
+echo "Deployed services:"
+kubectl get svc -n ray-system
+echo ""
+
+echo "Deployed pods:"
+kubectl get pods -n ray-system
+echo ""
+
+echo "=========================================="
+echo "Access Information"
 echo "=========================================="
 MINIKUBE_IP=$(minikube ip 2>/dev/null || echo "unavailable")
+
 if [ "$MINIKUBE_IP" != "unavailable" ]; then
-    echo "Dashboard URL: http://${MINIKUBE_IP}:30265"
     echo ""
-    echo "Or run: ./scripts/open-dashboard.sh"
+    echo "Ray Dashboard:"
+    echo "  URL: http://${MINIKUBE_IP}:30265"
+    echo "  Features: Time-series charts enabled"
+    echo ""
+    echo "Grafana Dashboard:"
+    echo "  URL: http://${MINIKUBE_IP}:30300"
+    echo "  Username: admin"
+    echo "  Password: admin"
+    echo ""
+    echo "Helper script:"
+    echo "  ./scripts/open-dashboard.sh"
+    echo ""
 else
-    echo "Run: ./scripts/open-dashboard.sh"
+    echo ""
+    echo "Ray Dashboard: Run ./scripts/open-dashboard.sh"
+    echo "Grafana: kubectl port-forward -n ray-system svc/grafana 3000:3000"
+    echo ""
 fi
+
+echo "=========================================="
+echo "Installation Complete!"
+echo "=========================================="
+echo ""
+echo "What's been installed:"
+echo "  ✓ Custom Ray image with TensorFlow"
+echo "  ✓ KubeRay operator"
+echo "  ✓ Ray cluster (1 head + 2 workers)"
+echo "  ✓ Prometheus (metrics collection)"
+echo "  ✓ Grafana (visualization)"
+echo ""
+echo "Next steps:"
+echo "  1. Access Ray dashboard (see URLs above)"
+echo "  2. Run benchmark: ./scripts/run-benchmark.sh"
+echo "  3. View Grafana dashboards (optional)"
+echo ""
+echo "Note: Refresh the Ray dashboard to see time-series charts"
 echo "=========================================="

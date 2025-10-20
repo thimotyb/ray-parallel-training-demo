@@ -114,19 +114,21 @@ cd ray-parallel-training-demo
 # 2. Setup Minikube cluster
 ./scripts/setup-minikube.sh
 
-# 3. Install Ray on Kubernetes
+# 3. Install Ray on Kubernetes (includes monitoring)
 ./scripts/install-ray.sh
 
-# 4. (Optional) Install monitoring stack for enhanced dashboard
-./scripts/install-monitoring.sh
-
-# 5. Run the benchmark
+# 4. Run the benchmark
 ./scripts/run-benchmark.sh
 ```
 
 That's it! The benchmark will run both baseline and Ray distributed training, then display a comparison report.
 
-**Note:** Installing the monitoring stack (Prometheus + Grafana) enables time-series charts and enhanced metrics in the Ray dashboard.
+**Note:** The install-ray.sh script now automatically installs:
+- Custom Ray image with TensorFlow
+- KubeRay operator
+- Ray cluster (1 head + 2 workers)
+- Prometheus (metrics collection)
+- Grafana (visualization with time-series charts)
 
 ## Detailed Setup
 
@@ -155,26 +157,28 @@ minikube       Ready    control-plane   1m    v1.28.3
 minikube-m02   Ready    <none>          1m    v1.28.3
 ```
 
-### Step 2: Install Ray Cluster
+### Step 2: Install Ray Cluster and Monitoring
 
 ```bash
 ./install-ray.sh
 ```
 
 This script will:
-- **Build custom Docker image** with TensorFlow and dependencies (3-5 minutes first time)
-- Add KubeRay Helm repository
-- Install KubeRay operator
-- Deploy Ray cluster with 1 head node and 2 worker nodes
-- Wait for cluster to be ready
+1. **Build custom Docker image** with TensorFlow and dependencies (3-5 minutes first time)
+2. Add KubeRay Helm repository and install operator
+3. Deploy Ray cluster with 1 head node and 2 worker nodes
+4. **Install monitoring stack** (Prometheus + Grafana)
+5. Wait for all services to be ready
 
-**Note:** The script builds a custom Docker image that includes:
-- TensorFlow 2.15.0
-- Ray with training support
-- NumPy, Pandas, Matplotlib, scikit-learn
-- All dependencies needed for the training benchmark
+**What gets installed:**
+- Custom Ray image with: TensorFlow 2.15.0, NumPy, Pandas, Matplotlib, scikit-learn
+- Ray cluster (1 head + 2 workers)
+- Prometheus (metrics collection)
+- Grafana (visualization and dashboards)
 
-Verify Ray cluster:
+**Time estimate:** 7-10 minutes (first time with Docker build)
+
+Verify installation:
 ```bash
 kubectl get pods -n ray-system
 ```
@@ -182,10 +186,12 @@ kubectl get pods -n ray-system
 Expected output:
 ```
 NAME                                READY   STATUS    RESTARTS   AGE
-kuberay-operator-...                1/1     Running   0          2m
-ray-training-cluster-head-...       1/1     Running   0          1m
-ray-training-cluster-worker-...     1/1     Running   0          1m
-ray-training-cluster-worker-...     1/1     Running   0          1m
+kuberay-operator-...                1/1     Running   0          3m
+ray-training-cluster-head-...       1/1     Running   0          2m
+ray-training-cluster-worker-...     1/1     Running   0          2m
+ray-training-cluster-worker-...     1/1     Running   0          2m
+prometheus-...                      1/1     Running   0          1m
+grafana-...                         1/1     Running   0          1m
 ```
 
 ### Step 3: Access Ray Dashboard (Optional)
@@ -239,29 +245,17 @@ The Ray dashboard provides:
 
 **Note:** The Ray dashboard does NOT require authentication by default. It's accessible without login credentials.
 
-### Step 4: Install Monitoring Stack (Optional but Recommended)
+**Monitoring Features:**
 
-To enable time-series charts and enhanced metrics visualization in the Ray dashboard:
+Since the monitoring stack (Prometheus + Grafana) is automatically installed, the Ray dashboard includes:
+- **Time-series charts**: Historical metrics visualization
+- **Resource graphs**: CPU, memory, network usage over time
+- **Job metrics**: Task duration, throughput trends
 
-```bash
-./scripts/install-monitoring.sh
-```
-
-This script will install:
-- **Prometheus**: Collects metrics from Ray cluster (exposed on port 9090)
-- **Grafana**: Visualizes metrics with dashboards (accessible at `http://<minikube-ip>:30300`)
-
-**Grafana Access:**
+**Access Grafana** (optional):
 - URL: `http://<minikube-ip>:30300`
 - Default credentials: `admin` / `admin`
-
-**What this enables:**
-- Time-series charts in Ray dashboard
-- Historical metrics and trends
-- Resource utilization graphs
-- Custom Grafana dashboards
-
-After installation, **refresh the Ray dashboard** to see the time-series charts appear.
+- Create custom dashboards and alerts
 
 ## Running the Benchmark
 
