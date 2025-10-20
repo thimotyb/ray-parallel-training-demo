@@ -179,9 +179,9 @@ For detailed dashboard guide, see: [docs/RAY_DASHBOARD.md](docs/RAY_DASHBOARD.md
   ./scripts/run-benchmark.sh
   ```
 
-- [ ] Monitor progress (this will take 15-25 minutes)
-  - [ ] Baseline training completes (~10-15 min)
-  - [ ] Ray distributed training completes (~6-8 min)
+- [ ] Monitor progress (this will take 4-7 minutes)
+  - [ ] Baseline training completes (~2-3 min)
+  - [ ] Ray distributed training completes (~1.5-2 min)
   - [ ] Comparison report is generated
 
 - [ ] Review results
@@ -189,13 +189,13 @@ For detailed dashboard guide, see: [docs/RAY_DASHBOARD.md](docs/RAY_DASHBOARD.md
   cat results/comparison.json
   ```
 
-**Time estimate:** 15-25 minutes
+**Time estimate:** 4-7 minutes (MNIST dataset with 5 epochs)
 
-### Alternative: Quick Test (5 epochs)
+### Alternative: Extended Training (10 epochs)
 
-- [ ] Run quick benchmark for faster testing
+- [ ] Run longer benchmark for more comprehensive testing
   ```bash
-  EPOCHS=5 ./scripts/run-benchmark.sh
+  EPOCHS=10 ./scripts/run-benchmark.sh
   ```
 
 **Time estimate:** 8-12 minutes
@@ -216,7 +216,7 @@ For detailed dashboard guide, see: [docs/RAY_DASHBOARD.md](docs/RAY_DASHBOARD.md
   ```
 
 - [ ] Both training runs completed successfully
-- [ ] Test accuracy is reasonable (> 0.65)
+- [ ] Test accuracy is reasonable (> 0.95 for MNIST)
 
 ### ✓ Ray Cluster Health
 
@@ -337,12 +337,12 @@ After successful completion:
 |------|------|
 | Prerequisites check | 5 min |
 | Minikube setup | 5 min |
-| Ray installation | 5 min |
-| Full benchmark | 20 min |
-| Review results | 5 min |
-| **Total** | **~40 minutes** |
+| Ray installation | 7 min |
+| Full benchmark (MNIST) | 5 min |
+| Review results | 3 min |
+| **Total** | **~25 minutes** |
 
-Quick test (5 epochs): **~25 minutes total**
+Extended test (10 epochs): **~30 minutes total**
 
 ## Success Criteria
 

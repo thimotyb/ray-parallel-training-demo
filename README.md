@@ -21,19 +21,21 @@ This project demonstrates:
 - Setting up a 2-node Minikube Kubernetes cluster
 - Building a custom Ray Docker image with TensorFlow
 - Deploying Ray cluster using KubeRay operator
-- Training a CNN model on CIFAR-10 dataset
+- Training a CNN model on MNIST dataset
 - Comparing training performance with and without Ray
 - Measuring speedup and efficiency gains
 
 ### Model Details
 
-- **Architecture**: Convolutional Neural Network (CNN)
-- **Dataset**: CIFAR-10 (60,000 32x32 color images in 10 classes)
+- **Architecture**: Lightweight Convolutional Neural Network (CNN)
+- **Dataset**: MNIST (70,000 28x28 grayscale images of handwritten digits)
 - **Framework**: TensorFlow 2.15 / Keras
 - **Layers**:
-  - 3 convolutional blocks with batch normalization and dropout
-  - Dense layers with 512 units
+  - 2 convolutional blocks (32 and 64 filters)
+  - MaxPooling after each conv block
+  - Dense layer with 128 units and dropout
   - 10-class softmax output
+- **Training Time**: ~2-3 minutes per training run (baseline or Ray)
 
 ## Architecture
 
@@ -334,26 +336,27 @@ After running the benchmark, you'll see a comparison report:
 ======================================================================
 
 Training Time:
-  Baseline (No Ray):        15.42 minutes (925.20s)
-  Ray (2 Workers):          8.73 minutes (523.80s)
-  Time Saved:               6.69 minutes (401.40s)
-  Speedup:                  1.77x
+  Baseline (No Ray):        2.35 minutes (141.20s)
+  Ray (2 Workers):          1.42 minutes (85.30s)
+  Time Saved:               0.93 minutes (55.90s)
+  Speedup:                  1.66x
 
 Model Performance:
-  Baseline Test Accuracy:   0.7234
-  Ray Test Accuracy:        0.7198
-  Accuracy Difference:      0.0036
+  Baseline Test Accuracy:   0.9876
+  Ray Test Accuracy:        0.9868
+  Accuracy Difference:      0.0008
 
 Configuration:
-  Epochs:                   10
+  Epochs:                   5
   Batch Size:               128
   Ray Workers:              2
   Ray Cluster CPUs:         8.0
   Ray Cluster Nodes:        2
 
 ======================================================================
-Speedup with Ray: 1.77x faster!
-Time saved: 6.69 minutes
+Speedup with Ray: 1.66x faster!
+Time saved: 0.93 minutes
+Total benchmark time: ~4 minutes
 ======================================================================
 ```
 
@@ -370,18 +373,21 @@ Example `comparison.json`:
 {
   "baseline": {
     "training_type": "baseline",
-    "training_time_seconds": 925.2,
-    "test_accuracy": 0.7234
+    "training_time_seconds": 141.2,
+    "test_accuracy": 0.9876,
+    "epochs_completed": 5
   },
   "ray_distributed": {
     "training_type": "ray_distributed",
     "num_workers": 2,
-    "training_time_seconds": 523.8,
-    "test_accuracy": 0.7198
+    "training_time_seconds": 85.3,
+    "test_accuracy": 0.9868,
+    "epochs_completed": 5
   },
   "comparison": {
-    "speedup": 1.77,
-    "time_saved_minutes": 6.69
+    "speedup": 1.66,
+    "time_saved_minutes": 0.93,
+    "time_saved_seconds": 55.9
   }
 }
 ```
@@ -389,8 +395,9 @@ Example `comparison.json`:
 ### What to Expect
 
 - **Speedup**: Typically 1.5x - 2x with 2 workers on small cluster
-- **Accuracy**: Should be within ±1-2% between baseline and Ray training
-- **Time**: Depends on hardware, but Ray should always be faster
+- **Accuracy**: Should reach ~98-99% on MNIST test set (±1% between runs)
+- **Time**: Baseline ~2-3 minutes, Ray ~1.5-2 minutes on typical hardware
+- **Total Benchmark Time**: ~5-7 minutes for both baseline and Ray training combined
 
 ## Development & Testing Cycle
 
@@ -584,11 +591,11 @@ minikube delete
 ## Next Steps
 
 1. **Experiment with more workers**: Modify `k8s/ray-cluster.yaml` to add more workers
-2. **Try different models**: Replace the CNN with other architectures
-3. **Use different datasets**: Switch from CIFAR-10 to other datasets
+2. **Try different models**: Replace the CNN with other architectures (ResNet, VGG, etc.)
+3. **Use different datasets**: Switch from MNIST to CIFAR-10, Fashion-MNIST, or custom datasets
 4. **Enable GPU support**: Modify configurations for GPU-accelerated training
-5. **Add monitoring**: Integrate Prometheus and Grafana for metrics
-6. **Try Ray Tune**: Add hyperparameter optimization with Ray Tune
+5. **Try Ray Tune**: Add hyperparameter optimization with Ray Tune
+6. **Increase model complexity**: Try deeper networks or larger batch sizes to see more dramatic speedup
 
 ## License
 
