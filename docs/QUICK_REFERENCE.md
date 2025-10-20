@@ -113,11 +113,17 @@ kubectl exec -it -n ray-system $RAY_HEAD_POD -- bash
 # Install Ray on Kubernetes
 ./scripts/install-ray.sh
 
-# Run full benchmark
-./scripts/run-benchmark.sh
+# Run benchmark (both baseline + Ray)
+./scripts/run-benchmark.sh both
+
+# Baseline only
+./scripts/run-benchmark.sh baseline
+
+# Ray distributed only
+./scripts/run-benchmark.sh ray
 
 # Run with custom parameters
-EPOCHS=20 BATCH_SIZE=256 ./scripts/run-benchmark.sh
+EPOCHS=20 BATCH_SIZE=256 ./scripts/run-benchmark.sh both
 
 # Cleanup resources
 ./scripts/cleanup.sh
@@ -288,7 +294,7 @@ export EPOCHS=20
 export BATCH_SIZE=256
 
 # Use environment variables
-EPOCHS=15 BATCH_SIZE=128 ./scripts/run-benchmark.sh
+EPOCHS=15 BATCH_SIZE=128 ./scripts/run-benchmark.sh both
 ```
 
 ## File Locations
@@ -384,7 +390,7 @@ kubectl delete namespace ray-system --grace-period=0 --force
 
 ```bash
 # Use fewer epochs for testing
-EPOCHS=5 ./scripts/run-benchmark.sh
+EPOCHS=5 ./scripts/run-benchmark.sh both
 
 # Keep results from previous runs
 mkdir -p results/run-$(date +%Y%m%d-%H%M%S)

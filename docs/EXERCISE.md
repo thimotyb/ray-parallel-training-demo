@@ -132,8 +132,8 @@ cat ../training/baseline_training.py
 ```
 
 **Key points to understand:**
-1. **Model Architecture**: CNN with 3 convolutional blocks
-2. **Dataset**: CIFAR-10 (50,000 training images, 10,000 test images)
+1. **Model Architecture**: Compact CNN with 2 convolutional blocks and a dense head
+2. **Dataset**: MNIST (60,000 training images, 10,000 test images)
 3. **Training Loop**: Standard Keras `model.fit()`
 4. **No parallelization**: Runs on a single process
 
@@ -200,12 +200,14 @@ cat ../training/ray_training.py
 Execute both baseline and Ray training:
 
 ```bash
-./run-benchmark.sh
+./scripts/run-benchmark.sh both
 ```
 
+Use `./scripts/run-benchmark.sh baseline` or `./scripts/run-benchmark.sh ray` when you want to execute a single leg.
+
 This will:
-1. Run baseline training (10 epochs, ~10-15 minutes)
-2. Run Ray distributed training (10 epochs, ~6-8 minutes)
+1. Run baseline training (10 epochs, ~2-3 minutes)
+2. Run Ray distributed training (10 epochs, ~1-2 minutes)
 3. Generate comparison report
 
 **Watch the output:**
@@ -236,8 +238,8 @@ cat comparison.json
 
 1. **Training Time**:
    ```json
-   "baseline": {"training_time_seconds": 925.2},
-   "ray_distributed": {"training_time_seconds": 523.8}
+   "baseline": {"training_time_seconds": 170.4},
+   "ray_distributed": {"training_time_seconds": 98.6}
    ```
 
 2. **Speedup**:
@@ -288,10 +290,10 @@ Test different batch sizes to see the impact:
 
 ```bash
 # Small batch
-BATCH_SIZE=64 ./run-benchmark.sh
+BATCH_SIZE=64 ./scripts/run-benchmark.sh both
 
 # Large batch
-BATCH_SIZE=256 ./run-benchmark.sh
+BATCH_SIZE=256 ./scripts/run-benchmark.sh both
 ```
 
 **Question:** How does batch size affect training time and speedup?
@@ -301,7 +303,7 @@ BATCH_SIZE=256 ./run-benchmark.sh
 For faster iterations:
 
 ```bash
-EPOCHS=5 ./run-benchmark.sh
+EPOCHS=5 ./scripts/run-benchmark.sh both
 ```
 
 **Question:** Does the speedup ratio remain consistent with fewer epochs?
@@ -382,7 +384,7 @@ kubectl rollout restart deployment/kuberay-operator -n ray-system
 **Solutions:**
 ```bash
 # Reduce batch size
-BATCH_SIZE=64 ./run-benchmark.sh
+BATCH_SIZE=64 ./scripts/run-benchmark.sh both
 
 # Increase Minikube memory
 minikube delete
